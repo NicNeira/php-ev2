@@ -2,6 +2,28 @@
 require_once 'config/database.php';
 require_once 'utils/auth.php';
 
+function validateAboutUsBody($data)
+{
+  $expectedKeys = [
+    'titulo' => ['esp', 'eng'],
+    'descripcion' => ['esp', 'eng']
+  ];
+
+  foreach ($expectedKeys as $key => $subKeys) {
+    if (!isset($data[$key]) || !is_array($data[$key])) {
+      return ['valid' => false, 'message' => "Missing or invalid key: $key"];
+    }
+
+    foreach ($subKeys as $subKey) {
+      if (!isset($data[$key][$subKey])) {
+        return ['valid' => false, 'message' => "Missing key: $key.$subKey"];
+      }
+    }
+  }
+
+  return ['valid' => true];
+}
+
 class AboutUsController
 {
   private $db;
@@ -40,6 +62,15 @@ class AboutUsController
 
   public function createAboutUs($data)
   {
+
+    // Validar el cuerpo de la solicitud
+    $validation = validateAboutUsBody($data);
+    if (!$validation['valid']) {
+      http_response_code(400); // Bad Request
+      echo json_encode(['message' => $validation['message']]);
+      return;
+    }
+
     $query = "INSERT INTO " . $this->table . " (titulo_esp, titulo_eng, descripcion_esp, descripcion_eng)
                   VALUES (:titulo_esp, :titulo_eng, :descripcion_esp, :descripcion_eng)";
     $stmt = $this->db->prepare($query);

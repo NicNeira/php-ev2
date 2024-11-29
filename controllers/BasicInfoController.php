@@ -2,6 +2,57 @@
 require_once 'config/database.php';
 require_once 'utils/auth.php';
 
+/**
+ * Validate the basic information body.
+ *
+ * @param array $data The data to validate.
+ * @return array The validation result.
+ */
+function validateBasicInfoBody($data)
+{
+  if (!isset($data['tipo'])) {
+    return ['valid' => false, 'message' => 'Missing key: tipo'];
+  }
+
+  $tipo = $data['tipo'];
+  $validTypes = ['menu-principal', 'hero', 'contacto', 'rrss'];
+
+  if (!in_array($tipo, $validTypes)) {
+    return ['valid' => false, 'message' => "Invalid tipo: $tipo. Expected values are: " . implode(', ', $validTypes)];
+  }
+
+  if (!isset($data['activo'])) {
+    return ['valid' => false, 'message' => 'Missing key: activo'];
+  }
+
+  if (!is_bool($data['activo'])) {
+    return ['valid' => false, 'message' => 'Invalid value for activo. Must be a boolean'];
+  }
+
+  // Validar campos adicionales basados en `tipo`
+  switch ($tipo) {
+    case 'menu-principal':
+      if (!isset($data['items']) || !is_array($data['items'])) {
+        return ['valid' => false, 'message' => 'Missing or invalid key: items for menu-principal'];
+      }
+      break;
+
+    case 'hero':
+      if (!isset($data['titulo']) || !isset($data['parrafo'])) {
+        return ['valid' => false, 'message' => 'Missing keys: titulo or parrafo for hero'];
+      }
+      break;
+
+    case 'contacto':
+    case 'rrss':
+      if (!isset($data['items']) || !is_array($data['items'])) {
+        return ['valid' => false, 'message' => 'Missing or invalid key: items for ' . $tipo];
+      }
+      break;
+  }
+
+  return ['valid' => true];
+}
 class BasicInfoController
 {
   private $db;
@@ -122,4 +173,14 @@ class BasicInfoController
     }
     return $items;
   }
+
+  // public function createBasicInfo($data)
+  // // Validar el cuerpo de la solicitud
+  // $validation = validateBasicInfoBody($data);
+  // if (!$validation['valid']) {
+  //   http_response_code(400); // Bad Request
+  //   echo json_encode(['message' => $validation['message']]);
+  //   return;
+  // }
+
 }
