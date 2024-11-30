@@ -1,4 +1,8 @@
 <?php
+
+/**
+ * Main entry point for the application.
+ */
 header('Content-Type: application/json');
 
 require_once 'controllers/ServicesController.php';
@@ -27,14 +31,14 @@ try {
       $data = json_decode(file_get_contents('php://input'), true);
 
       if (!$data) {
-        http_response_code(400); // Bad Request
+        http_response_code(400);
         echo json_encode(['message' => 'Invalid or missing JSON body']);
         exit();
       }
 
       $controller->createService($data);
     } else {
-      http_response_code(405); // Method Not Allowed
+      http_response_code(405);
       echo json_encode(['message' => 'Method Not Allowed']);
     }
   } elseif (preg_match('/\/v1\/about-us\/?$/', $request_uri)) {
@@ -45,14 +49,37 @@ try {
       $data = json_decode(file_get_contents('php://input'), true);
 
       if (!$data) {
-        http_response_code(400); // Bad Request
+        http_response_code(400);
         echo json_encode(['message' => 'Invalid or missing JSON body']);
         exit();
       }
 
       $controller->createAboutUs($data);
     } else {
-      http_response_code(405); // Method Not Allowed
+      http_response_code(405);
+      echo json_encode(['message' => 'Method Not Allowed']);
+    }
+  } elseif (preg_match('/\/v1\/basic-info\/items\/?$/', $request_uri)) {
+    $controller = new BasicInfoController();
+    if ($request_method === 'POST') {
+      $data = json_decode(file_get_contents('php://input'), true);
+
+      if (!$data) {
+        http_response_code(400);
+        echo json_encode(['message' => 'Invalid or missing JSON body']);
+        exit();
+      }
+
+      $validation = validateBasicInfoBody($data);
+      if (!$validation['valid']) {
+        http_response_code(400);
+        echo json_encode(['message' => $validation['message']]);
+        exit();
+      }
+
+      $controller->addItemsToBasicInfo($data);
+    } else {
+      http_response_code(405);
       echo json_encode(['message' => 'Method Not Allowed']);
     }
   } elseif (preg_match('/\/v1\/basic-info\/?$/', $request_uri)) {
@@ -60,25 +87,14 @@ try {
     if ($request_method === 'GET') {
       $controller->getBasicInfo();
     } else {
-      http_response_code(405); // Method Not Allowed
+      http_response_code(405);
       echo json_encode(['message' => 'Method Not Allowed']);
     }
   } else {
-    http_response_code(404); // Not Found
+    http_response_code(404);
     echo json_encode(['message' => 'Endpoint Not Found']);
   }
 } catch (Exception $e) {
-  // Respuesta para errores del servidor
-  http_response_code(500); // Internal Server Error
+  http_response_code(500);
   echo json_encode(['message' => 'Internal Server Error', 'error' => $e->getMessage()]);
-} catch (Error $err) {
-  // Respuesta para errores fatales de PHP
-  http_response_code(500); // Internal Server Error
-  echo json_encode(['message' => 'Fatal Error', 'error' => $err->getMessage()]);
-} finally {
-  // Validación adicional si se requiere limpiar recursos
-  if (connection_aborted()) {
-    http_response_code(500);
-    echo json_encode(['message' => 'Request Aborted']);
-  }
 }

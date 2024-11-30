@@ -2,6 +2,20 @@
 require_once 'config/database.php';
 require_once 'utils/auth.php';
 
+/**
+ * Validates the structure of the About Us body data.
+ *
+ * This function checks if the provided data contains the expected keys and sub-keys.
+ * The expected structure is:
+ * - 'titulo' with sub-keys 'esp' and 'eng'
+ * - 'descripcion' with sub-keys 'esp' and 'eng'
+ *
+ * @param array $data The data to validate.
+ * 
+ * @return array An associative array with:
+ * - 'valid' (bool): Indicates whether the data is valid.
+ * - 'message' (string, optional): Contains an error message if the data is invalid.
+ */
 function validateAboutUsBody($data)
 {
   $expectedKeys = [
@@ -35,6 +49,15 @@ class AboutUsController
     $this->db = $database->getConnection();
   }
 
+  /**
+   * Retrieves the "About Us" information from the database and returns it as a JSON response.
+   *
+   * This function executes a SQL query to fetch all records from the specified table,
+   * orders them by the 'id' field, and reconstructs the data into a structured JSON format.
+   * The JSON structure includes titles and descriptions in both Spanish ('esp') and English ('eng').
+   *
+   * @return void Outputs the JSON-encoded "About Us" data.
+   */
   public function getAboutUs()
   {
     $query = "SELECT * FROM " . $this->table . " ORDER BY id";
@@ -42,7 +65,6 @@ class AboutUsController
     $stmt->execute();
     $aboutUs = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // Reconstruir la estructura del JSON
     $data = [];
     foreach ($aboutUs as $item) {
       $data[] = [
@@ -60,10 +82,27 @@ class AboutUsController
     echo json_encode(['data' => $data]);
   }
 
+  /**
+   * Creates a new About Us item in the database.
+   *
+   * This function validates the provided data and inserts a new record into the About Us table.
+   * If the data is invalid, it returns a 400 Bad Request response with an error message.
+   * If the insertion is successful, it returns a 201 Created response with a success message.
+   * If the insertion fails, it returns a 500 Internal Server Error response with an error message.
+   *
+   * @param array $data The data to create the About Us item, including:
+   *                    - 'titulo' (array): Titles in different languages.
+   *                      - 'esp' (string): Title in Spanish.
+   *                      - 'eng' (string): Title in English.
+   *                    - 'descripcion' (array): Descriptions in different languages.
+   *                      - 'esp' (string): Description in Spanish.
+   *                      - 'eng' (string): Description in English.
+   *
+   * @return void
+   */
   public function createAboutUs($data)
   {
 
-    // Validar el cuerpo de la solicitud
     $validation = validateAboutUsBody($data);
     if (!$validation['valid']) {
       http_response_code(400); // Bad Request

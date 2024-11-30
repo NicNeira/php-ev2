@@ -2,6 +2,19 @@
 require_once 'config/database.php';
 require_once 'utils/auth.php';
 
+/**
+ * Validates the structure of the service body data.
+ *
+ * This function checks if the provided data array contains the expected keys and subkeys.
+ * The expected structure is:
+ * - 'titulo' (array with keys 'esp' and 'eng')
+ * - 'descripcion' (array with keys 'esp' and 'eng')
+ * - 'activo' (simple key)
+ *
+ * @param array $data The data array to validate.
+ * @return array An associative array with 'valid' (boolean) indicating if the data is valid,
+ *               and 'message' (string) providing details in case of invalid data.
+ */
 function validateServiceBody($data)
 {
   // Definir la estructura esperada
@@ -46,6 +59,16 @@ class ServicesController
     $this->db = $database->getConnection();
   }
 
+  /**
+   * Retrieves all services from the database, reconstructs the JSON structure, and outputs it.
+   *
+   * This function executes a SQL query to fetch all records from the services table,
+   * orders them by the 'id' field, and then reconstructs the JSON structure to include
+   * titles and descriptions in both Spanish and English. It also converts the 'activo'
+   * field to a boolean value.
+   *
+   * @return void Outputs the JSON-encoded data of services.
+   */
   public function getServices()
   {
     $query = "SELECT * FROM " . $this->table . " ORDER BY id";
@@ -73,6 +96,24 @@ class ServicesController
     echo json_encode(['data' => $data]);
   }
 
+  /**
+   * Create a new service.
+   *
+   * This method validates the request body and creates a new service in the database
+   * if the validation passes. It returns appropriate HTTP response codes and messages
+   * based on the outcome of the operation.
+   *
+   * @param array $data The data for the new service, including:
+   *                    - 'titulo' (array): The title of the service in different languages.
+   *                      - 'esp' (string): The title in Spanish.
+   *                      - 'eng' (string): The title in English.
+   *                    - 'descripcion' (array): The description of the service in different languages.
+   *                      - 'esp' (string): The description in Spanish.
+   *                      - 'eng' (string): The description in English.
+   *                    - 'activo' (bool): The active status of the service.
+   *
+   * @return void
+   */
   public function createService($data)
   {
     // Validar el cuerpo de la solicitud

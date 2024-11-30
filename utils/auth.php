@@ -1,8 +1,17 @@
 
 <?php
-/* 
-  This file contains the function isAuthorized that checks if the request is authorized. The function receives the headers of the request and returns true if the request is authorized. 
-*/
+
+
+/**
+ * Checks if the request is authorized based on the provided headers.
+ *
+ * This function verifies the presence of an 'Authorization' header and checks
+ * if it contains a valid Bearer token. The token is considered valid if it
+ * matches the predefined value 'ciisa'.
+ *
+ * @param array $headers An associative array of request headers.
+ * @return bool Returns true if the request is authorized, false otherwise.
+ */
 function isAuthorized($headers)
 {
   if (!isset($headers['Authorization'])) {

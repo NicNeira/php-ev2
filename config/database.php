@@ -7,6 +7,11 @@ class Database
   private $password = 's71semana2';
   public $conn;
 
+  /**
+   * Establishes a connection to the PostgreSQL database using PDO.
+   *
+   * @return PDO|null Returns a PDO instance representing a connection to the database, or null if the connection fails.
+   */
   public function getConnection()
   {
     $this->conn = null;
